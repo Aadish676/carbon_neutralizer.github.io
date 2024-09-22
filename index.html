@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Footprint Tracker & Compensator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2, h3 {
+            color: #333;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #entryList, #tipsList, #compensationList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .left, .right {
+            width: 45%;
+        }
+
+        .left {
+            background: #f7f9fc;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .right {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-box {
+            background: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .compensation-section {
+            margin-top: 20px;
+        }
+
+        .compensation-section h3 {
+            color: #28a745;
+        }
+
+        .highlight {
+            font-weight: bold;
+            font-size: 18px;
+            color: #28a745;
+        }
+
+        #remainingCO2 {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #dc3545;
+            font-size: 18px;
+        }
+
+        #finalResult {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #007bff;
+        }
+
+        #carbonChart {
+            margin-top: 20px;
+        }
+
+        .entry-item {
+            background: #f0f9ff;
+            padding: 10px;
+            border: 1px solid #cce5ff;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <h1 style="text-align: center;">Carbon Footprint Tracker & Compensation</h1>
+
+    <div class="container">
+        <!-- Carbon Footprint Tracker Section -->
+        <div class="left">
+            <h2>Track Your CO2 Entries</h2>
+            <form id="entryForm">
+                <div class="input-group">
+                    <label for="category">Category:</label>
+                    <select id="category" required>
+                        <option value="">Select...</option>
+                        <option value="fuel">Fuel (liters)</option>
+                        <option value="groceries">Groceries (kg)</option>
+                        <option value="flights">Flights (km)</option>
+                        <option value="electricity_consumed">Electricity Consumed (kWh)</option>
+                        <option value="public_transport">Public Transport (km)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="amount">Amount:</label>
+                    <input type="number" id="amount" step="0.01" required>
+                </div>
+                <button type="submit">Add Entry</button>
+            </form>
+
+            <h3>Your CO2 Entries</h3>
+            <ul id="entryList"></ul>
+
+            <button id="calculateBtn">Calculate CO2 Footprint</button>
+
+            <div id="results" class="hidden">
+                <div class="result-box">
+                    <h3>Total CO2 Emissions</h3>
+                    <p id="totalCO2"></p>
+                </div>
+
+                <h3>Sustainability Tips:</h3>
+                <ul id="tipsList"></ul>
+
+                <h3 id="finalResult" class="hidden">Final CO2 Emissions:</h3>
+            </div>
+        </div>
+
+        <!-- Carbon Compensation Section -->
+        <div class="right">
+            <h2>Compensate Your CO2</h2>
+            <div class="compensation-section">
+                <div class="input-group">
+                    <label for="compensationMethod">Select Compensation Method:</label>
+                    <select id="compensationMethod">
+                        <option value="">Select...</option>
+                        <option value="carbon_credit">Carbon Credits (kg CO2)</option>
+                        <option value="reforestation">Reforestation (trees planted)</option>
+                        <option value="renewable_energy">Renewable Energy (kWh)</option>
+                        <option value="solar_panels">Solar Panel Installation (sq meters)</option>
+                        <option value="energy_efficiency">Energy Efficiency Upgrades (units)</option>
+                        <option value="bicycle_use">Bicycle Use (km)</option>
+                        <option value="composting">Composting (kg of waste)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="compensationAmount">Compensation Quantity:</label>
+                    <input type="number" id="compensationAmount" step="0.01" required>
+                </div>
+                <button id="compensateBtn">Apply Compensation</button>
+
+                <h3>Compensation Details</h3>
+                <ul id="compensationList"></ul>
+                <p id="remainingCO2"></p>
+                <canvas id="carbonChart" class="hidden"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CO2_LIMITS = {
+            fuel: 2.31, // kg CO2 per liter
+            groceries: 0.45, // kg CO2 per kg
+            flights: 115.0, // kg CO2 per 1000 km
+            electricity_consumed: 0.5, // kg CO2 per kWh
+            public_transport: 0.1 // kg CO2 per km
+        };
+
+        const COMPENSATION_FACTORS = {
+            carbon_credit: 1.0, // kg CO2 offset per credit
+            reforestation: 22.0, // kg CO2 offset per tree planted
+            renewable_energy: 0.5, // kg CO2 offset per kWh
+            solar_panels: 50.0, // kg CO2 offset per square meter installed
+            energy_efficiency: 10.0, // kg CO2 offset per unit upgraded
+            bicycle_use: 0.05, // kg CO2 offset per km
+            composting: 0.3 // kg CO2 offset per kg of waste composted
+        };
+
+        let entries = [];
+        let totalCO2 = 0;
+        let totalCompensation = 0;
+
+        document.getElementById('entryForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const category = document.getElementById('category').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            
+            if (amount > 0) {
+                entries.push({ category, amount });
+                updateEntryList();
+                document.getElementById('entryForm').reset();
+                updateChart(); // Update chart on entry addition
+            }
+        });
+
+        function updateEntryList() {
+            const list = document.getElementById('entryList');
+            list.innerHTML = '';
+            entries.forEach((entry) => {
+                const li = document.createElement('li');
+                li.className = 'entry-item';
+                li.innerHTML = `${entry.amount} ${getUnit(entry.category)} - ${entry.category.replace(/_/g, ' ')}`;
+                list.appendChild(li);
+            });
+        }
+
+        function getUnit(category) {
+            switch (category) {
+                case 'fuel':
+                    return 'liters';
+                case 'groceries':
+                    return 'kg';
+                case 'flights':
+                    return 'km';
+                case 'electricity_consumed':
+                    return 'kWh';
+                case 'public_transport':
+                    return 'km';
+                default:
+                    return '';
+            }
+        }
+
+        document.getElementById('calculateBtn').addEventListener('click', function () {
+            totalCO2 = entries.reduce((sum, entry) => {
+                return sum + (entry.amount * CO2_LIMITS[entry.category]);
+            }, 0);
+
+            document.getElementById('totalCO2').innerText = `${totalCO2.toFixed(2)} kg CO2`;
+            document.getElementById('finalResult').innerText = `Final CO2 Emissions: ${totalCO2.toFixed(2)} kg CO2`;
+            document.getElementById('results').classList.remove('hidden');
+            updateChart(); // Update chart after calculating CO2
+        });
+
+        document.getElementById('compensateBtn').addEventListener('click', function () {
+            const method = document.getElementById('compensationMethod').value;
+            const amount = parseFloat(document.getElementById('compensationAmount').value);
+
+            if (method && !isNaN(amount) && amount > 0) {
+                const compensation = amount * COMPENSATION_FACTORS[method];
+                totalCompensation += compensation;
+
+                const compensationList = document.getElementById('compensationList');
+                const li = document.createElement('li');
+                li.innerHTML = `${amount} - ${method.replace(/_/g, ' ')} offsets ${compensation.toFixed(2)} kg CO2`;
+                compensationList.appendChild(li);
+
+                document.getElementById('remainingCO2').innerText = `Remaining CO2: ${(totalCO2 - totalCompensation).toFixed(2)} kg CO2`;
+                updateChart(); // Update chart after compensation
+                document.getElementById('compensationAmount').value = '';
+            }
+        });
+
+        let carbonChart;
+        function updateChart() {
+            const ctx = document.getElementById('carbonChart');
+            if (!carbonChart) {
+                carbonChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Total Emissions', 'Total Compensation'],
+                        datasets: [{
+                            label: 'CO2 (kg)',
+                            data: [totalCO2, totalCompensation],
+                            backgroundColor: [
+                                'rgba(40, 167, 69, 0.5)',
+                                'rgba(255, 193, 7, 0.5)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            } else {
+                carbonChart.data.datasets[0].data[0] = totalCO2;
+                carbonChart.data.datasets[0].data[1] = totalCompensation;
+                carbonChart.update();
+                document.getElementById('carbonChart').classList.remove('hidden');
+            }
+        }
+
+        const tips = [
+            "Consider using public transport or biking instead of driving.",
+            "Reduce energy consumption by switching to energy-efficient appliances.",
+            "Offset your carbon footprint by supporting reforestation projects.",
+            "Choose local products to reduce transportation emissions.",
+            "Educate yourself and others about sustainability practices."
+        ];
+
+        function displayTips() {
+            const tipsList = document.getElementById('tipsList');
+            tips.forEach(tip => {
+                const li = document.createElement('li');
+                li.innerText = tip;
+                tipsList.appendChild(li);
+            });
+        }
+
+        displayTips();
+    </script>
+</body>
+</html>
